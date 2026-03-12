@@ -31,7 +31,20 @@ export const SchedulerProvider = ({ children }) => {
                 ]);
 
                 if (evRes.ok) setEvents(await evRes.json());
-                if (histRes.ok) setHistory(await histRes.json());
+                if (histRes.ok) {
+                    const raw = await histRes.json();
+                    setHistory(raw.map(h => ({
+                        id: h.id,
+                        eventId: h.event_id,
+                        eventName: h.event_name,
+                        timestamp: h.time,
+                        status: h.status,
+                        success: h.status === 'Sucesso',
+                        response: h.response,
+                        triggerType: h.type,
+                        recipient: h.recipient
+                    })));
+                }
                 if (empRes.ok) setEmployees(await empRes.json());
                 if (settRes.ok) setWebhookSettings(await settRes.json());
             } catch (err) {
@@ -235,7 +248,20 @@ export const SchedulerProvider = ({ children }) => {
                 });
                 // Update local history
                 const histRes = await fetch(`${API_URL}/history`);
-                if (histRes.ok) setHistory(await histRes.json());
+                if (histRes.ok) {
+                    const raw = await histRes.json();
+                    setHistory(raw.map(h => ({
+                        id: h.id,
+                        eventId: h.event_id,
+                        eventName: h.event_name,
+                        timestamp: h.time,
+                        status: h.status,
+                        success: h.status === 'Sucesso',
+                        response: h.response,
+                        triggerType: h.type,
+                        recipient: h.recipient
+                    })));
+                }
             } catch (err) {
                 console.error("Error saving history:", err);
             }
@@ -246,45 +272,17 @@ export const SchedulerProvider = ({ children }) => {
         }
     };
 
+    // Scheduler Loop - DISABLED to prevent duplicate firings
+    // All automatic webhook firing is handled by the backend cron job (/api/scheduler/check)
+    // The frontend only handles manual firing via the fireWebhook function above
     const checkTriggers = useCallback(async () => {
-        const now = new Date();
-        let updated = false;
-        const newEvents = [...events];
+        // Intentionally empty - automatic firing disabled in frontend
+    }, []);
 
-        for (let event of newEvents) {
-            for (let trigger of event.triggers) {
-                const triggerDate = new Date(trigger.time);
-                if (!trigger.fired && now >= triggerDate) {
-                    trigger.fired = true;
-                    updated = true;
-                    await fireWebhook(event, trigger);
-                }
-            }
-        }
-
-        if (updated) {
-            // Update events in UI and ideally on server too
-            // For now, let's keep it in UI
-            setEvents(newEvents);
-        }
-    }, [events, fireWebhook]);
-
-    // Scheduler Loop
     useEffect(() => {
-        if (!motorActive) return;
-
-        const interval = setInterval(() => {
-            setNextUpdate(prev => {
-                if (prev <= 1) {
-                    checkTriggers();
-                    return 60;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [motorActive, checkTriggers]);
+        // Motor disabled - cron job handles auto-firing
+        setMotorActive(false);
+    }, []);
 
     return (
         <SchedulerContext.Provider value={{
