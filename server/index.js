@@ -37,6 +37,9 @@ app.delete('/api/employees/:id', async (req, res) => {
         await db.query('DELETE FROM employees WHERE id = $1', [req.params.id]);
         res.json({ message: 'Employee deleted' });
     } catch (err) {
+        if (err.code === '23503') {
+            return res.status(400).json({ error: 'Não é possível excluir um funcionário que possui eventos vinculados. Remova ou altere os eventos antes de excluir o funcionário.' });
+        }
         res.status(500).json({ error: err.message });
     }
 });

@@ -86,9 +86,13 @@ export const SchedulerProvider = ({ children }) => {
             const res = await fetch(`${API_URL}/employees/${id}`, { method: 'DELETE' });
             if (res.ok) {
                 setEmployees(prev => prev.filter(e => e.id !== id));
+            } else {
+                const data = await res.json();
+                alert(data.error || "Erro ao excluir funcionário");
             }
         } catch (err) {
             console.error("Error deleting employee:", err);
+            alert("Erro de conexão com o servidor");
         }
     };
 
