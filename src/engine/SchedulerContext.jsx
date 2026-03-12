@@ -247,45 +247,16 @@ export const SchedulerProvider = ({ children }) => {
         }
     };
 
+    // Scheduler Loop - DISABLED in Frontend to avoid duplicate firings with Vercel Cron
+    // Automatic webhooks are now handled purely by the server-side cron job
     const checkTriggers = useCallback(async () => {
-        const now = new Date();
-        let updated = false;
-        const newEvents = [...events];
+        // No longer used in frontend
+    }, []);
 
-        for (let event of newEvents) {
-            for (let trigger of event.triggers) {
-                const triggerDate = new Date(trigger.time);
-                if (!trigger.fired && now >= triggerDate) {
-                    trigger.fired = true;
-                    updated = true;
-                    await fireWebhook(event, trigger);
-                }
-            }
-        }
-
-        if (updated) {
-            // Update events in UI and ideally on server too
-            // For now, let's keep it in UI
-            setEvents(newEvents);
-        }
-    }, [events, fireWebhook]);
-
-    // Scheduler Loop
     useEffect(() => {
-        if (!motorActive) return;
-
-        const interval = setInterval(() => {
-            setNextUpdate(prev => {
-                if (prev <= 1) {
-                    checkTriggers();
-                    return 60;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [motorActive, checkTriggers]);
+        // Scheduler loop disabled
+        setMotorActive(false);
+    }, []);
 
     return (
         <SchedulerContext.Provider value={{
