@@ -26,17 +26,18 @@ const Dashboard = ({ onAddClick }) => {
             color: 'var(--primary)',
             trend: 'Aguardando disparo'
         },
-        {
-            label: 'Disparados Hoje',
-            value: history.filter(h => {
-                const hDate = new Date(h.timestamp).toDateString();
-                const today = new Date().toDateString();
-                return hDate === today && h.success;
-            }).length,
-            icon: CheckCircle2,
-            color: 'var(--success)',
-            trend: 'Sucesso'
-        },
+            {
+                label: 'Disparados Hoje',
+                value: history.filter(h => {
+                    if (!h.timestamp) return false;
+                    const hDate = new Date(h.timestamp).toDateString();
+                    const today = new Date().toDateString();
+                    return hDate === today && h.success;
+                }).length,
+                icon: CheckCircle2,
+                color: 'var(--success)',
+                trend: 'Sucesso'
+            },
         {
             label: 'Erros Recentes',
             value: history.filter(h => !h.success).length,
@@ -169,21 +170,25 @@ const Dashboard = ({ onAddClick }) => {
         }
 
         .card-success {
-          border-left-color: var(--success);
-          box-shadow: 0 4px 12px rgba(29, 184, 119, 0.05);
+          border-left: 6px solid var(--success);
+          background: linear-gradient(to right, rgba(29, 184, 119, 0.1), var(--bg-medium));
+          box-shadow: 0 4px 12px rgba(29, 184, 119, 0.1);
         }
 
         .card-success:hover {
-          box-shadow: 0 4px 15px rgba(29, 184, 119, 0.15);
+          box-shadow: 0 4px 15px rgba(29, 184, 119, 0.2);
+          background: linear-gradient(to right, rgba(29, 184, 119, 0.15), var(--bg-medium));
         }
 
         .card-error {
-          border-left-color: var(--danger-soft);
-          box-shadow: 0 4px 12px rgba(232, 64, 74, 0.05);
+          border-left: 6px solid var(--danger-soft);
+          background: linear-gradient(to right, rgba(232, 64, 74, 0.1), var(--bg-medium));
+          box-shadow: 0 4px 12px rgba(232, 64, 74, 0.1);
         }
 
         .card-error:hover {
-          box-shadow: 0 4px 15px rgba(232, 64, 74, 0.15);
+          box-shadow: 0 4px 15px rgba(232, 64, 74, 0.2);
+          background: linear-gradient(to right, rgba(232, 64, 74, 0.15), var(--bg-medium));
         }
 
         .card-mini-header {

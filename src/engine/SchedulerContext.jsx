@@ -31,7 +31,21 @@ export const SchedulerProvider = ({ children }) => {
                 ]);
 
                 if (evRes.ok) setEvents(await evRes.json());
-                if (histRes.ok) setHistory(await histRes.json());
+                if (histRes.ok) {
+                    const rawHistory = await histRes.json();
+                    const normalizedHistory = rawHistory.map(h => ({
+                        id: h.id,
+                        eventId: h.event_id,
+                        eventName: h.event_name,
+                        timestamp: h.time,
+                        status: h.status,
+                        success: h.status === 'Sucesso',
+                        response: h.response,
+                        triggerType: h.type,
+                        recipient: h.recipient
+                    }));
+                    setHistory(normalizedHistory);
+                }
                 if (empRes.ok) setEmployees(await empRes.json());
                 if (settRes.ok) setWebhookSettings(await settRes.json());
             } catch (err) {
@@ -236,7 +250,21 @@ export const SchedulerProvider = ({ children }) => {
                 });
                 // Update local history
                 const histRes = await fetch(`${API_URL}/history`);
-                if (histRes.ok) setHistory(await histRes.json());
+                if (histRes.ok) {
+                    const rawHistory = await histRes.json();
+                    const normalizedHistory = rawHistory.map(h => ({
+                        id: h.id,
+                        eventId: h.event_id,
+                        eventName: h.event_name,
+                        timestamp: h.time,
+                        status: h.status,
+                        success: h.status === 'Sucesso',
+                        response: h.response,
+                        triggerType: h.type,
+                        recipient: h.recipient
+                    }));
+                    setHistory(normalizedHistory);
+                }
             } catch (err) {
                 console.error("Error saving history:", err);
             }
