@@ -106,7 +106,7 @@ app.post('/api/events', async (req, res) => {
             `INSERT INTO events 
       (project_name, start_date, event_time, location, observation, responsible, webhook_url, webhook_mode, options, employee_id, status, triggers) 
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
-            [projectName, startDate, eventTime, location, observation, responsible, webhookUrl, webhookMode, JSON.stringify(options), employeeId, status, JSON.stringify(triggers)]
+            [projectName, startDate, eventTime, location, observation, responsible, webhookUrl, webhookMode, options, employeeId, status, triggers]
         );
         res.json(rows[0]);
     } catch (err) {
@@ -123,7 +123,7 @@ app.put('/api/events/:id', async (req, res) => {
       responsible = $6, webhook_url = $7, webhook_mode = $8, options = $9, employee_id = $10, 
       status = $11, triggers = $12 
       WHERE id = $13 RETURNING *`,
-            [projectName, startDate, eventTime, location, observation, responsible, webhookUrl, webhookMode, JSON.stringify(options), employeeId, status, JSON.stringify(triggers), req.params.id]
+            [projectName, startDate, eventTime, location, observation, responsible, webhookUrl, webhookMode, options, employeeId, status, triggers, req.params.id]
         );
         res.json(rows[0]);
     } catch (err) {
@@ -154,7 +154,7 @@ app.post('/api/settings/:key', async (req, res) => {
     try {
         await db.query(
             'INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
-            [req.params.key, JSON.stringify(req.body)]
+            [req.params.key, req.body]
         );
         res.json({ message: 'Settings updated' });
     } catch (err) {
@@ -278,7 +278,9 @@ app.get('/api/scheduler/check', async (req, res) => {
             }
 
             if (eventUpdated) {
-                await db.query('UPDATE events SET triggers = $1 WHERE id = $2', [JSON.stringify(triggers), event.id]);
+                console.log(`Saving updated triggers for event: ${event.project_name} (ID: ${event.id})`);
+                const result = await db.query('UPDATE events SET triggers = $1 WHERE id = $2', [triggers, event.id]);
+                console.log(`Update result for ${event.id}:`, result.rowCount > 0 ? "SUCCESS" : "FAILED");
             }
         }
 
