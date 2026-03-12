@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 
 const SchedulerContext = createContext();
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = '/api';
 
 export const useScheduler = () => useContext(SchedulerContext);
 
