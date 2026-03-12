@@ -209,18 +209,21 @@ export const SchedulerProvider = ({ children }) => {
         };
 
         try {
-            const response = await fetch(targetUrl, {
+            // FIRE VIA BACKEND to avoid CORS/Mixed Content issues on Vercel
+            const response = await fetch(`${API_URL}/webhooks/fire`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ targetUrl, payload })
             });
+
+            const data = await response.json();
 
             const historyEntry = {
                 event_id: event.id,
                 event_name: event.projectName,
                 time: new Date().toISOString(),
-                status: response.ok ? 'Sucesso' : `Erro ${response.status}`,
-                response: response.ok ? 'Webhook disparado com sucesso' : `Falha no disparo: ${response.statusText}`,
+                status: data.ok ? 'Sucesso' : `Erro ${data.status || 'Server'}`,
+                response: data.ok ? 'Webhook disparado (via Server)' : `Falha no disparo: ${data.statusText || data.error}`,
                 type: trigger.type
             };
 
@@ -236,7 +239,7 @@ export const SchedulerProvider = ({ children }) => {
             } catch (err) {
                 console.error("Error saving history:", err);
             }
-            return response.ok;
+            return data.ok;
         } catch (error) {
             console.error("Webhook firing error:", error);
             return false;

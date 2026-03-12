@@ -155,6 +155,109 @@ app.post('/api/history', async (req, res) => {
     }
 });
 
+// --- WEBHOOKS & SCHEDULER (Server-side) ---
+
+app.post('/api/webhooks/fire', async (req, res) => {
+    const { targetUrl, payload } = req.body;
+    try {
+        const response = await fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        const responseData = {
+            ok: response.ok,
+            status: response.status,
+            statusText: response.statusText
+        };
+        
+        res.json(responseData);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/scheduler/check', async (req, res) => {
+    try {
+        const now = new Date();
+        const { rows: events } = await db.query('SELECT * FROM events WHERE status = $1', ['Agendado']);
+        let firedCount = 0;
+
+        for (const event of events) {
+            let eventUpdated = false;
+            let triggers = event.triggers;
+            
+            for (let trigger of triggers) {
+                const triggerDate = new Date(trigger.time);
+                if (!trigger.fired && now >= triggerDate) {
+                    trigger.fired = true;
+                    eventUpdated = true;
+                    firedCount++;
+
+                    // Fire Webhook
+                    const { rows: employees } = await db.query('SELECT * FROM employees WHERE id = $1', [event.employee_id]);
+                    const employee = employees[0];
+                    const { rows: settingsRows } = await db.query('SELECT value FROM settings WHERE key = $1', ['webhook_settings']);
+                    const webhookSettings = settingsRows[0]?.value || {};
+
+                    let targetUrl = event.webhook_url;
+                    if (event.webhook_mode === 'production') targetUrl = webhookSettings.productionUrl;
+                    else if (event.webhook_mode === 'test') targetUrl = webhookSettings.testUrl;
+
+                    if (targetUrl) {
+                        const payload = {
+                            evento: event.project_name,
+                            data: event.start_date instanceof Date ? event.start_date.toISOString().split('T')[0] : event.start_date,
+                            hora: event.event_time,
+                            local: event.location,
+                            observacao: event.observation,
+                            responsavel: event.responsible,
+                            funcionario_nome: employee ? employee.name : 'Não informado',
+                            funcionario_telefone: employee ? employee.phone : 'Não informado',
+                            tipo_disparo: trigger.type,
+                            timestamp_disparo: new Date().toISOString(),
+                            sistema: "DECOM - Controle de Tarefas"
+                        };
+
+                        try {
+                            const response = await fetch(targetUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+
+                            const historyEntry = {
+                                event_id: event.id,
+                                event_name: event.project_name,
+                                status: response.ok ? 'Sucesso' : `Erro ${response.status}`,
+                                response: response.ok ? 'Webhook disparado (server-side via Cron)' : `Falha no disparo: ${response.statusText}`,
+                                type: trigger.type
+                            };
+
+                            await db.query(
+                                'INSERT INTO history (event_id, event_name, status, response, type) VALUES ($1, $2, $3, $4, $5)',
+                                [historyEntry.event_id, historyEntry.event_name, historyEntry.status, historyEntry.response, historyEntry.type]
+                            );
+                        } catch (err) {
+                            console.error("Cron webhook fire error:", err);
+                        }
+                    }
+                }
+            }
+
+            if (eventUpdated) {
+                await db.query('UPDATE events SET triggers = $1 WHERE id = $2', [JSON.stringify(triggers), event.id]);
+            }
+        }
+
+        res.json({ message: 'Scheduler check completed', fired: firedCount });
+    } catch (err) {
+        console.error("Cron error:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // const PORT = process.env.PORT || 3001;
 // app.listen(PORT, () => {
 //     console.log(`Server running on port ${PORT}`);
