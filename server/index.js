@@ -2,42 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import * as db from './db.js';
 import dotenv from 'dotenv';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-// --- MIDDLEWARE ---
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) return res.status(401).json({ error: 'Token de acesso não fornecido' });
-
-    jwt.verify(token, process.env.JWT_SECRET || 'secret', (err, user) => {
-        if (err) return res.status(403).json({ error: 'Token inválido ou expirado' });
-        req.user = user;
-        next();
-    });
-};
-
-// --- AUTHENTICATION ---
-app.post('/api/auth/login', async (req, res) => {
-    // ... logic same as before ...
-});
-
-// Protect all other api routes
-app.use('/api', (req, res, next) => {
-    // Exclude login and health checks/crons if needed
-    if (req.path === '/auth/login' || req.path === '/scheduler/check' || req.path === '/webhooks/fire') {
-        return next();
-    }
-    authenticateToken(req, res, next);
-});
 
 // --- EMPLOYEES ---
 app.get('/api/employees', async (req, res) => {
@@ -173,11 +143,11 @@ app.get('/api/history', async (req, res) => {
 });
 
 app.post('/api/history', async (req, res) => {
-    const { event_id, event_name, status, response, type, recipient } = req.body;
+    const { event_id, event_name, status, response, type } = req.body;
     try {
         await db.query(
-            'INSERT INTO history (event_id, event_name, status, response, type, recipient) VALUES ($1, $2, $3, $4, $5, $6)',
-            [event_id, event_name, status, response, type, recipient]
+            'INSERT INTO history (event_id, event_name, status, response, type) VALUES ($1, $2, $3, $4, $5)',
+            [event_id, event_name, status, response, type]
         );
         res.json({ message: 'History added' });
     } catch (err) {
@@ -262,13 +232,12 @@ app.get('/api/scheduler/check', async (req, res) => {
                                 event_name: event.project_name,
                                 status: response.ok ? 'Sucesso' : `Erro ${response.status}`,
                                 response: response.ok ? 'Webhook disparado (server-side via Cron)' : `Falha no disparo: ${response.statusText}`,
-                                type: trigger.type,
-                                recipient: targetUrl
+                                type: trigger.type
                             };
 
                             await db.query(
-                                'INSERT INTO history (event_id, event_name, status, response, type, recipient) VALUES ($1, $2, $3, $4, $5, $6)',
-                                [historyEntry.event_id, historyEntry.event_name, historyEntry.status, historyEntry.response, historyEntry.type, historyEntry.recipient]
+                                'INSERT INTO history (event_id, event_name, status, response, type) VALUES ($1, $2, $3, $4, $5)',
+                                [historyEntry.event_id, historyEntry.event_name, historyEntry.status, historyEntry.response, historyEntry.type]
                             );
                         } catch (err) {
                             console.error("Cron webhook fire error:", err);
@@ -278,17 +247,13 @@ app.get('/api/scheduler/check', async (req, res) => {
             }
 
             if (eventUpdated) {
-                console.log(`Updating database for ${event.project_name}...`);
-                const allFired = triggers.every(t => t.fired);
-                const query = allFired 
-                    ? 'UPDATE events SET triggers = $1, status = $2 WHERE id = $3'
-                    : 'UPDATE events SET triggers = $1 WHERE id = $2';
-                const params = allFired 
-                    ? [JSON.stringify(triggers), 'Concluído', event.id]
-                    : [JSON.stringify(triggers), event.id];
+                await db.query('UPDATE events SET triggers = $1 WHERE id = $2', [JSON.stringify(triggers), event.id]);
                 
-                const result = await db.query(query, params);
-                console.log(`Update ${event.id}:`, result.rowCount > 0 ? "SUCCESS" : "FAILED", allFired ? "(Marked as Concluído)" : "");
+                // Auto-complete if all triggers have been fired
+                const allFired = triggers.every(t => t.fired);
+                if (allFired) {
+                    await db.query('UPDATE events SET status = $1 WHERE id = $2', ['Concluído', event.id]);
+                }
             }
         }
 

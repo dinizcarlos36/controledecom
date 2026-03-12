@@ -16,14 +16,6 @@ export const SchedulerProvider = ({ children }) => {
         defaultMode: 'production'
     });
 
-    const getAuthHeaders = () => {
-        const token = sessionStorage.getItem('auth_token');
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : ''
-        };
-    };
-
     const [nextUpdate, setNextUpdate] = useState(60);
     const [motorActive, setMotorActive] = useState(true);
 
@@ -31,30 +23,15 @@ export const SchedulerProvider = ({ children }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const headers = getAuthHeaders();
                 const [evRes, histRes, empRes, settRes] = await Promise.all([
-                    fetch(`${API_URL}/events`, { headers }),
-                    fetch(`${API_URL}/history`, { headers }),
-                    fetch(`${API_URL}/employees`, { headers }),
-                    fetch(`${API_URL}/settings/webhook_settings`, { headers })
+                    fetch(`${API_URL}/events`),
+                    fetch(`${API_URL}/history`),
+                    fetch(`${API_URL}/employees`),
+                    fetch(`${API_URL}/settings/webhook_settings`)
                 ]);
 
                 if (evRes.ok) setEvents(await evRes.json());
-                if (histRes.ok) {
-                    const rawHistory = await histRes.json();
-                    const normalizedHistory = rawHistory.map(h => ({
-                        id: h.id,
-                        eventId: h.event_id,
-                        eventName: h.event_name,
-                        timestamp: h.time,
-                        status: h.status,
-                        success: h.status === 'Sucesso',
-                        response: h.response,
-                        triggerType: h.type,
-                        recipient: h.recipient
-                    }));
-                    setHistory(normalizedHistory);
-                }
+                if (histRes.ok) setHistory(await histRes.json());
                 if (empRes.ok) setEmployees(await empRes.json());
                 if (settRes.ok) setWebhookSettings(await settRes.json());
             } catch (err) {
@@ -76,7 +53,7 @@ export const SchedulerProvider = ({ children }) => {
         try {
             const res = await fetch(`${API_URL}/events`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newEvent)
             });
             if (res.ok) {
@@ -247,33 +224,18 @@ export const SchedulerProvider = ({ children }) => {
                 time: new Date().toISOString(),
                 status: data.ok ? 'Sucesso' : `Erro ${data.status || 'Server'}`,
                 response: data.ok ? 'Webhook disparado (via Server)' : `Falha no disparo: ${data.statusText || data.error}`,
-                type: trigger.type,
-                recipient: targetUrl
+                type: trigger.type
             };
 
             try {
                 await fetch(`${API_URL}/history`, {
                     method: 'POST',
-                    headers: getAuthHeaders(),
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(historyEntry)
                 });
                 // Update local history
-                const histRes = await fetch(`${API_URL}/history`, { headers: getAuthHeaders() });
-                if (histRes.ok) {
-                    const rawHistory = await histRes.json();
-                    const normalizedHistory = rawHistory.map(h => ({
-                        id: h.id,
-                        eventId: h.event_id,
-                        eventName: h.event_name,
-                        timestamp: h.time,
-                        status: h.status,
-                        success: h.status === 'Sucesso',
-                        response: h.response,
-                        triggerType: h.type,
-                        recipient: h.recipient
-                    }));
-                    setHistory(normalizedHistory);
-                }
+                const histRes = await fetch(`${API_URL}/history`);
+                if (histRes.ok) setHistory(await histRes.json());
             } catch (err) {
                 console.error("Error saving history:", err);
             }
@@ -284,16 +246,45 @@ export const SchedulerProvider = ({ children }) => {
         }
     };
 
-    // Scheduler Loop - DISABLED in Frontend to avoid duplicate firings with Vercel Cron
-    // Automatic webhooks are now handled purely by the server-side cron job
     const checkTriggers = useCallback(async () => {
-        // No longer used in frontend
-    }, []);
+        const now = new Date();
+        let updated = false;
+        const newEvents = [...events];
 
+        for (let event of newEvents) {
+            for (let trigger of event.triggers) {
+                const triggerDate = new Date(trigger.time);
+                if (!trigger.fired && now >= triggerDate) {
+                    trigger.fired = true;
+                    updated = true;
+                    await fireWebhook(event, trigger);
+                }
+            }
+        }
+
+        if (updated) {
+            // Update events in UI and ideally on server too
+            // For now, let's keep it in UI
+            setEvents(newEvents);
+        }
+    }, [events, fireWebhook]);
+
+    // Scheduler Loop
     useEffect(() => {
-        // Scheduler loop disabled
-        setMotorActive(false);
-    }, []);
+        if (!motorActive) return;
+
+        const interval = setInterval(() => {
+            setNextUpdate(prev => {
+                if (prev <= 1) {
+                    checkTriggers();
+                    return 60;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [motorActive, checkTriggers]);
 
     return (
         <SchedulerContext.Provider value={{

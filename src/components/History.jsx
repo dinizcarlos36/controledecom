@@ -33,40 +33,31 @@ const History = () => {
                                 {index !== history.length - 1 && <div className="marker-line"></div>}
                             </div>
 
-                            <div className="timeline-content card-rich">
-                                <div className={`history-card-header ${item.success ? 'bg-success-tint' : 'bg-error-tint'}`}>
-                                    <div className="card-title-row">
-                                        <h4 className="card-event-name">{item.eventName}</h4>
-                                        <span className={`card-status-pill ${item.success ? 'pill-success' : 'pill-error'}`}>
-                                            {item.status}
+                            <div className="timeline-content">
+                                <div className="item-header">
+                                    <div className="item-title-row">
+                                        <span className="item-event-name">{item.eventName}</span>
+                                        <span className={`status-badge ${item.success ? 'badge-success' : 'badge-error'}`}>
+                                            HTTP {item.status}
                                         </span>
                                     </div>
-                                    <div className="card-meta-row">
-                                        <span className="card-timestamp">
-                                            {new Date(item.timestamp).toLocaleDateString('pt-BR')} às {new Date(item.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
-                                        <span className="card-trigger-badge">{item.triggerType}</span>
-                                    </div>
+                                    <span className="item-timestamp">
+                                        {new Date(item.timestamp).toLocaleString('pt-BR')}
+                                    </span>
                                 </div>
 
-                                <div className="card-details-box">
-                                    <div className="card-detail-line">
-                                        <span className="card-detail-label">Destinatário:</span>
-                                        <span className="card-detail-value">{item.recipient || 'URL não capturada'}</span>
-                                    </div>
-                                    <div className="card-detail-line">
-                                        <span className="card-detail-label">Resposta/Conteúdo:</span>
-                                        <span className={`card-detail-value italic ${item.success ? 'text-success' : 'text-danger'}`}>
-                                            "{item.response}"
-                                        </span>
+                                <div className="item-details">
+                                    <div className="detail-row">
+                                        <span className="detail-label">Tipo de Antecedência:</span>
+                                        <span className="detail-value">{item.triggerType}</span>
                                     </div>
                                 </div>
 
                                 {!item.success && (
-                                    <div className="card-actions">
-                                        <button className="btn-resend-rich" onClick={() => handleResend(item)}>
+                                    <div className="item-actions">
+                                        <button className="btn-resend" onClick={() => handleResend(item)}>
                                             <RefreshCcw size={14} />
-                                            Tentar Novamente
+                                            Reenviar Disparo
                                         </button>
                                     </div>
                                 )}
@@ -78,7 +69,7 @@ const History = () => {
 
             <style jsx>{`
         .history-container {
-          max-width: 900px;
+          max-width: 800px;
           margin: 0 auto;
         }
 
@@ -89,7 +80,7 @@ const History = () => {
         .timeline-item {
           display: flex;
           gap: 24px;
-          margin-bottom: 32px;
+          margin-bottom: 0;
         }
 
         .timeline-marker {
@@ -107,143 +98,112 @@ const History = () => {
           align-items: center;
           justify-content: center;
           z-index: 2;
-          background-color: var(--bg-deep);
-          border: 1px solid var(--bg-light);
         }
 
-        .marker-success { color: var(--success); border-color: var(--success); }
-        .marker-error { color: var(--danger-soft); border-color: var(--danger-soft); }
+        .marker-success {
+          background-color: rgba(29, 184, 119, 0.1);
+          color: var(--success);
+          border: 1px solid var(--success);
+        }
+
+        .marker-error {
+          background-color: rgba(192, 32, 42, 0.1);
+          color: var(--danger-soft);
+          border: 1px solid var(--danger-soft);
+        }
 
         .marker-line {
           width: 2px;
           flex: 1;
           background-color: var(--bg-light);
-          min-height: 40px;
+          min-height: 100px;
         }
 
-        .timeline-content.card-rich {
+        .timeline-content {
           flex: 1;
           background-color: var(--bg-medium);
-          border-radius: 12px;
           border: 1px solid var(--bg-light);
-          overflow: hidden;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .history-card-header {
+          border-radius: 8px;
           padding: 20px;
-          border-bottom: 1px solid var(--bg-light);
+          margin-bottom: 40px;
+          position: relative;
         }
 
-        .bg-success-tint { 
-          border-left: 6px solid var(--success);
-          background: linear-gradient(to right, rgba(29, 184, 119, 0.15), transparent);
-        }
-        .bg-error-tint { 
-          border-left: 6px solid var(--danger-soft);
-          background: linear-gradient(to right, rgba(232, 64, 74, 0.15), transparent);
-        }
-
-        .card-title-row {
+        .item-header {
           display: flex;
           justify-content: space-between;
-          align-items: center;
-          margin-bottom: 8px;
+          align-items: flex-start;
+          margin-bottom: 12px;
         }
 
-        .card-event-name {
-          font-size: 18px;
-          font-weight: 700;
-          color: white;
-          margin: 0;
-        }
-
-        .card-status-pill {
-          font-size: 10px;
-          font-weight: 800;
-          padding: 4px 10px;
-          border-radius: 20px;
-          text-transform: uppercase;
-        }
-
-        .pill-success { background: rgba(29, 184, 119, 0.1); color: var(--success); }
-        .pill-error { background: rgba(232, 64, 74, 0.1); color: var(--danger-soft); }
-
-        .card-meta-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .card-timestamp {
-          font-size: 12px;
-          color: var(--text-muted);
-        }
-
-        .card-trigger-badge {
-          font-size: 11px;
-          background: var(--bg-deep);
-          color: var(--primary);
-          padding: 2px 8px;
-          border-radius: 4px;
-        }
-
-        .card-details-box {
-          padding: 20px;
-          background: rgba(0, 0, 0, 0.1);
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .card-detail-line {
+        .item-title-row {
           display: flex;
           flex-direction: column;
           gap: 4px;
         }
 
-        .card-detail-label {
-          font-size: 11px;
-          text-transform: uppercase;
-          color: var(--text-muted);
-          letter-spacing: 0.05em;
-        }
-
-        .card-detail-value {
-          color: white;
-          font-size: 14px;
-          word-break: break-all;
-        }
-
-        .italic { font-style: italic; }
-        .text-success { color: var(--success); }
-        .text-danger { color: var(--danger-soft); }
-
-        .card-actions {
-          padding: 16px 20px;
-          display: flex;
-          justify-content: flex-end;
-          background: var(--bg-deep);
-        }
-
-        .btn-resend-rich {
-          background: var(--danger-soft);
-          color: white;
-          border: none;
-          padding: 8px 16px;
-          border-radius: 6px;
-          font-size: 13px;
+        .item-event-name {
           font-weight: 700;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          cursor: pointer;
-          transition: transform 0.2s;
+          color: white;
+          font-size: 16px;
         }
 
-        .btn-resend-rich:hover {
-          transform: translateY(-2px);
-          filter: brightness(1.1);
+        .status-badge {
+          display: inline-block;
+          font-size: 10px;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 4px;
+          width: fit-content;
+        }
+
+        .badge-success { background-color: var(--bg-deep); color: var(--success); }
+        .badge-error { background-color: var(--bg-deep); color: var(--danger-soft); }
+
+        .item-timestamp {
+          font-size: 11px;
+          color: var(--text-muted);
+        }
+
+        .item-details {
+            padding: 12px;
+            background-color: var(--bg-deep);
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .detail-label { color: var(--text-muted); }
+        .detail-value { color: white; font-weight: 500; }
+
+        .item-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-resend {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-resend:hover {
+            background-color: var(--primary);
+            color: var(--bg-deep);
         }
 
         .empty-history {

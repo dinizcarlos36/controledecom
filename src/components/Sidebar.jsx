@@ -7,11 +7,10 @@ import {
   LayoutDashboard,
   Users,
   Settings,
-  LogOut,
   Bell
 } from 'lucide-react';
 
-const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
+const Sidebar = ({ activeTab, setActiveTab }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'events', label: 'Eventos', icon: Calendar },
@@ -47,19 +46,6 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
             {activeTab === item.id && <div className="active-indicator" />}
           </button>
         ))}
-        
-        <div className="sidebar-divider" style={{ margin: '16px 24px' }} />
-        
-        <button
-          className="nav-item nav-item-logout"
-          onClick={() => {
-            console.log("Logout clicked");
-            if (onLogout) onLogout();
-          }}
-        >
-          <LogOut size={18} />
-          <span>Sair do Sistema</span>
-        </button>
       </nav>
 
       <div className="sidebar-footer">
@@ -163,29 +149,7 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
         }
 
         .sidebar-footer {
-          padding: 16px;
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          background-color: var(--bg-deep);
-        }
-
-        .sidebar-divider {
-          height: 1px;
-          background: var(--bg-light);
-          margin: 0 -16px;
-          opacity: 0.5;
-        }
-
-        .nav-item-logout {
-          color: var(--danger-soft);
-          margin-top: auto;
-          font-weight: 700;
-        }
-
-        .nav-item-logout:hover {
-          color: white;
-          background: var(--danger-soft);
+          padding: 0 16px;
         }
 
         .btn-add-quick {
@@ -193,8 +157,8 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
           background-color: var(--primary);
           color: var(--bg-deep);
           border: none;
-          padding: 12px 16px;
-          border-radius: 8px;
+          padding: 10px 16px;
+          border-radius: 6px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -206,7 +170,7 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
 
         .btn-add-quick:hover {
           background-color: var(--primary-soft);
-          transform: translateY(-2px);
+          transform: scale(1.02);
         }
       `}</style>
     </aside>
