@@ -173,11 +173,11 @@ app.get('/api/history', async (req, res) => {
 });
 
 app.post('/api/history', async (req, res) => {
-    const { event_id, event_name, status, response, type } = req.body;
+    const { event_id, event_name, status, response, type, recipient } = req.body;
     try {
         await db.query(
-            'INSERT INTO history (event_id, event_name, status, response, type) VALUES ($1, $2, $3, $4, $5)',
-            [event_id, event_name, status, response, type]
+            'INSERT INTO history (event_id, event_name, status, response, type, recipient) VALUES ($1, $2, $3, $4, $5, $6)',
+            [event_id, event_name, status, response, type, recipient]
         );
         res.json({ message: 'History added' });
     } catch (err) {
@@ -262,12 +262,13 @@ app.get('/api/scheduler/check', async (req, res) => {
                                 event_name: event.project_name,
                                 status: response.ok ? 'Sucesso' : `Erro ${response.status}`,
                                 response: response.ok ? 'Webhook disparado (server-side via Cron)' : `Falha no disparo: ${response.statusText}`,
-                                type: trigger.type
+                                type: trigger.type,
+                                recipient: targetUrl
                             };
 
                             await db.query(
-                                'INSERT INTO history (event_id, event_name, status, response, type) VALUES ($1, $2, $3, $4, $5)',
-                                [historyEntry.event_id, historyEntry.event_name, historyEntry.status, historyEntry.response, historyEntry.type]
+                                'INSERT INTO history (event_id, event_name, status, response, type, recipient) VALUES ($1, $2, $3, $4, $5, $6)',
+                                [historyEntry.event_id, historyEntry.event_name, historyEntry.status, historyEntry.response, historyEntry.type, historyEntry.recipient]
                             );
                         } catch (err) {
                             console.error("Cron webhook fire error:", err);

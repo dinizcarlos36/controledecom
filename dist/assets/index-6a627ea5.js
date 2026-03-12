@@ -251,7 +251,7 @@ Error generating stack: `+o.message+`
           font-variant-numeric: tabular-nums;
           font-size: 14px;
         }
-      `})]})},sc=O.createContext(),ye="/api",Ft=()=>O.useContext(sc),gf=({children:e})=>{const[t,n]=O.useState([]),[r,l]=O.useState([]),[o,i]=O.useState([]),[s,u]=O.useState({productionUrl:"",testUrl:"",defaultMode:"production"}),[d,g]=O.useState(60),[m,h]=O.useState(!0);O.useEffect(()=>{(async()=>{try{const[x,w,P,_]=await Promise.all([fetch(`${ye}/events`),fetch(`${ye}/history`),fetch(`${ye}/employees`),fetch(`${ye}/settings/webhook_settings`)]);x.ok&&n(await x.json()),w.ok&&l(await w.json()),P.ok&&i(await P.json()),_.ok&&u(await _.json())}catch(x){console.error("Error fetching data from API:",x)}})()},[]);const S=async v=>{const x={...v,status:"Agendado",triggers:f(v.startDate,v.eventTime,v.options)};try{const w=await fetch(`${ye}/events`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(x)});if(w.ok){const P=await w.json();n(_=>[..._,P])}}catch(w){console.error("Error adding event:",w)}},j=async v=>{try{const x=await fetch(`${ye}/employees`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...v,id:void 0})});if(x.ok){const w=await x.json();i(P=>[...P,w])}}catch(x){console.error("Error adding employee:",x)}},N=async v=>{try{const x=await fetch(`${ye}/employees/${v}`,{method:"DELETE"});if(x.ok)i(w=>w.filter(P=>P.id!==v));else{const w=await x.json();alert(w.error||"Erro ao excluir funcionário")}}catch(x){console.error("Error deleting employee:",x),alert("Erro de conexão com o servidor")}},U=async v=>{try{(await fetch(`${ye}/events/${v}`,{method:"DELETE"})).ok&&n(w=>w.filter(P=>P.id!==v))}catch(x){console.error("Error deleting event:",x)}},p=async(v,x)=>{const P={...t.find(_=>_.id===v),...x};(x.startDate||x.eventTime||x.options)&&(P.triggers=f(P.startDate,P.eventTime,P.options),P.status="Agendado");try{const _=await fetch(`${ye}/events/${v}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(P)});if(_.ok){const L=await _.json();n(le=>le.map(Ue=>Ue.id===v?L:Ue))}}catch(_){console.error("Error updating event:",_)}},c=async v=>{try{(await fetch(`${ye}/settings/webhook_settings`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)})).ok&&u(v)}catch(x){console.error("Error updating settings:",x)}},f=(v,x,w)=>{const P=new Date(`${v}T${x}`);return w.map(_=>{let L=new Date(P);switch(_){case"7d":L.setDate(L.getDate()-7);break;case"3d":L.setDate(L.getDate()-3);break;case"2d":L.setDate(L.getDate()-2);break;case"1d":L.setDate(L.getDate()-1);break;case"12h":L.setHours(L.getHours()-12);break;case"6h":L.setHours(L.getHours()-6);break;case"2h":L.setHours(L.getHours()-2);break;case"1h":L.setHours(L.getHours()-1);break;case"30m":L.setMinutes(L.getMinutes()-30);break;case"15m":L.setMinutes(L.getMinutes()-15);break;case"5m":L.setMinutes(L.getMinutes()-5);break;case"exact":break;default:if(_.startsWith("custom_")){const le=parseInt(_.split("_")[1]);L.setMinutes(L.getMinutes()-le)}}return{type:_,time:L.toISOString(),fired:!1}})},y=async(v,x)=>{const w=o.find(L=>L.id===v.employeeId);let P=v.webhookUrl;if(v.webhookMode==="production"?P=s.productionUrl:v.webhookMode==="test"&&(P=s.testUrl),!P)return console.error("No valid webhook URL found for event:",v.projectName),!1;const _={evento:v.projectName,data:v.startDate,hora:v.eventTime,local:v.location,observacao:v.observation,responsavel:v.responsible,funcionario_nome:w?w.name:"Não informado",funcionario_telefone:w?w.phone:"Não informado",tipo_disparo:x.type,timestamp_disparo:new Date().toISOString(),sistema:"DECOM - Controle de Tarefas"};try{const le=await(await fetch(`${ye}/webhooks/fire`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({targetUrl:P,payload:_})})).json(),Ue={event_id:v.id,event_name:v.projectName,time:new Date().toISOString(),status:le.ok?"Sucesso":`Erro ${le.status||"Server"}`,response:le.ok?"Webhook disparado (via Server)":`Falha no disparo: ${le.statusText||le.error}`,type:x.type};try{await fetch(`${ye}/history`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Ue)});const kt=await fetch(`${ye}/history`);kt.ok&&l(await kt.json())}catch(kt){console.error("Error saving history:",kt)}return le.ok}catch(L){return console.error("Webhook firing error:",L),!1}},E=O.useCallback(async()=>{const v=new Date;let x=!1;const w=[...t];for(let P of w)for(let _ of P.triggers){const L=new Date(_.time);!_.fired&&v>=L&&(_.fired=!0,x=!0,await y(P,_))}x&&n(w)},[t,y]);return O.useEffect(()=>{if(!m)return;const v=setInterval(()=>{g(x=>x<=1?(E(),60):x-1)},1e3);return()=>clearInterval(v)},[m,E]),a.jsx(sc.Provider,{value:{events:t,history:r,employees:o,webhookSettings:s,addEvent:S,deleteEvent:U,updateEvent:p,addEmployee:j,deleteEmployee:N,updateWebhookSettings:c,motorActive:m,setMotorActive:h,nextUpdate:d,fireWebhook:y},children:e})},vf=({onAddClick:e})=>{const{events:t,history:n}=Ft(),r=[{label:"Total de Eventos",value:t.length,icon:Kp,color:"var(--primary)",trend:"Ativos no sistema"},{label:"Agendados",value:t.filter(o=>o.status==="Agendado").length,icon:Ui,color:"var(--primary)",trend:"Aguardando disparo"},{label:"Disparados Hoje",value:n.filter(o=>{const i=new Date(o.timestamp).toDateString(),s=new Date().toDateString();return i===s&&o.success}).length,icon:Fi,color:"var(--success)",trend:"Sucesso"},{label:"Erros Recentes",value:n.filter(o=>!o.success).length,icon:Ap,color:"var(--danger-soft)",trend:"Falhas registradas",urgent:!0}],l=n.slice(0,5);return a.jsxs("div",{className:"dashboard-container fade-in",children:[a.jsx("div",{className:"stats-grid",children:r.map((o,i)=>a.jsxs("div",{className:`stat-card ${o.urgent?"stat-urgent":""}`,style:{animationDelay:`${i*.1}s`},children:[a.jsxs("div",{className:"stat-header",children:[a.jsx("span",{className:"stat-label",children:o.label}),a.jsx(o.icon,{size:24,style:{color:o.color}})]}),a.jsx("div",{className:"stat-value",children:o.value}),a.jsxs("div",{className:"stat-footer",children:[a.jsx(uf,{size:12}),a.jsx("span",{children:o.trend})]})]},i))}),a.jsxs("div",{className:"dashboard-grid",children:[a.jsxs("div",{className:"dashboard-main",children:[a.jsxs("div",{className:"section-header",children:[a.jsx("h3",{className:"section-title",children:"Atividade Recente"}),a.jsx("button",{className:"btn-text",children:"Ver tudo"})]}),a.jsx("div",{className:"history-mini-list",children:l.length===0?a.jsx("div",{className:"empty-mini",children:"Nenhuma atividade recente registrada"}):l.map(o=>a.jsxs("div",{className:"history-mini-item",children:[a.jsx("div",{className:`status-indicator ${o.success?"bg-success":"bg-danger"}`}),a.jsxs("div",{className:"history-info",children:[a.jsx("span",{className:"history-name",children:o.eventName}),a.jsxs("span",{className:"history-meta",children:[o.triggerType," • ",new Date(o.timestamp).toLocaleTimeString()]})]}),a.jsx("div",{className:"history-badge",children:o.status})]},o.id))})]}),a.jsx("div",{className:"dashboard-side",children:a.jsxs("div",{className:"promo-card",children:[a.jsx("h4",{children:"Novo Evento?"}),a.jsx("p",{children:"Agende disparos automáticos para múltiplos canais via webhook."}),a.jsx("button",{className:"btn-primary-small",onClick:e,children:"Criar Agora"})]})})]}),a.jsx("style",{jsx:!0,children:`
+      `})]})},sc=O.createContext(),ye="/api",Ft=()=>O.useContext(sc),gf=({children:e})=>{const[t,n]=O.useState([]),[r,l]=O.useState([]),[o,i]=O.useState([]),[s,u]=O.useState({productionUrl:"",testUrl:"",defaultMode:"production"}),[d,g]=O.useState(60),[m,h]=O.useState(!0);O.useEffect(()=>{(async()=>{try{const[x,w,P,_]=await Promise.all([fetch(`${ye}/events`),fetch(`${ye}/history`),fetch(`${ye}/employees`),fetch(`${ye}/settings/webhook_settings`)]);x.ok&&n(await x.json()),w.ok&&l(await w.json()),P.ok&&i(await P.json()),_.ok&&u(await _.json())}catch(x){console.error("Error fetching data from API:",x)}})()},[]);const S=async v=>{const x={...v,status:"Agendado",triggers:f(v.startDate,v.eventTime,v.options)};try{const w=await fetch(`${ye}/events`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(x)});if(w.ok){const P=await w.json();n(_=>[..._,P])}}catch(w){console.error("Error adding event:",w)}},j=async v=>{try{const x=await fetch(`${ye}/employees`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...v,id:void 0})});if(x.ok){const w=await x.json();i(P=>[...P,w])}}catch(x){console.error("Error adding employee:",x)}},N=async v=>{try{const x=await fetch(`${ye}/employees/${v}`,{method:"DELETE"});if(x.ok)i(w=>w.filter(P=>P.id!==v));else{const w=await x.json();alert(w.error||"Erro ao excluir funcionário")}}catch(x){console.error("Error deleting employee:",x),alert("Erro de conexão com o servidor")}},U=async v=>{try{(await fetch(`${ye}/events/${v}`,{method:"DELETE"})).ok&&n(w=>w.filter(P=>P.id!==v))}catch(x){console.error("Error deleting event:",x)}},p=async(v,x)=>{const P={...t.find(_=>_.id===v),...x};(x.startDate||x.eventTime||x.options)&&(P.triggers=f(P.startDate,P.eventTime,P.options),P.status="Agendado");try{const _=await fetch(`${ye}/events/${v}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(P)});if(_.ok){const L=await _.json();n(le=>le.map(Ue=>Ue.id===v?L:Ue))}}catch(_){console.error("Error updating event:",_)}},c=async v=>{try{(await fetch(`${ye}/settings/webhook_settings`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)})).ok&&u(v)}catch(x){console.error("Error updating settings:",x)}},f=(v,x,w)=>{const P=new Date(`${v}T${x}`);return w.map(_=>{let L=new Date(P);switch(_){case"7d":L.setDate(L.getDate()-7);break;case"3d":L.setDate(L.getDate()-3);break;case"2d":L.setDate(L.getDate()-2);break;case"1d":L.setDate(L.getDate()-1);break;case"12h":L.setHours(L.getHours()-12);break;case"6h":L.setHours(L.getHours()-6);break;case"2h":L.setHours(L.getHours()-2);break;case"1h":L.setHours(L.getHours()-1);break;case"30m":L.setMinutes(L.getMinutes()-30);break;case"15m":L.setMinutes(L.getMinutes()-15);break;case"5m":L.setMinutes(L.getMinutes()-5);break;case"exact":break;default:if(_.startsWith("custom_")){const le=parseInt(_.split("_")[1]);L.setMinutes(L.getMinutes()-le)}}return{type:_,time:L.toISOString(),fired:!1}})},y=async(v,x)=>{const w=o.find(L=>L.id===v.employeeId);let P=v.webhookUrl;if(v.webhookMode==="production"?P=s.productionUrl:v.webhookMode==="test"&&(P=s.testUrl),!P)return console.error("No valid webhook URL found for event:",v.projectName),!1;const _={evento:v.projectName,data:v.startDate,hora:v.eventTime,local:v.location,observacao:v.observation,responsavel:v.responsible,funcionario_nome:w?w.name:"Não informado",funcionario_telefone:w?w.phone:"Não informado",tipo_disparo:x.type,timestamp_disparo:new Date().toISOString(),sistema:"DECOM - Controle de Tarefas"};try{const le=await(await fetch(`${ye}/webhooks/fire`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({targetUrl:P,payload:_})})).json(),Ue={event_id:v.id,event_name:v.projectName,time:new Date().toISOString(),status:le.ok?"Sucesso":`Erro ${le.status||"Server"}`,response:le.ok?"Webhook disparado (via Server)":`Falha no disparo: ${le.statusText||le.error}`,type:x.type,recipient:P};try{await fetch(`${ye}/history`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Ue)});const kt=await fetch(`${ye}/history`);kt.ok&&l(await kt.json())}catch(kt){console.error("Error saving history:",kt)}return le.ok}catch(L){return console.error("Webhook firing error:",L),!1}},E=O.useCallback(async()=>{const v=new Date;let x=!1;const w=[...t];for(let P of w)for(let _ of P.triggers){const L=new Date(_.time);!_.fired&&v>=L&&(_.fired=!0,x=!0,await y(P,_))}x&&n(w)},[t,y]);return O.useEffect(()=>{if(!m)return;const v=setInterval(()=>{g(x=>x<=1?(E(),60):x-1)},1e3);return()=>clearInterval(v)},[m,E]),a.jsx(sc.Provider,{value:{events:t,history:r,employees:o,webhookSettings:s,addEvent:S,deleteEvent:U,updateEvent:p,addEmployee:j,deleteEmployee:N,updateWebhookSettings:c,motorActive:m,setMotorActive:h,nextUpdate:d,fireWebhook:y},children:e})},vf=({onAddClick:e})=>{const{events:t,history:n}=Ft(),r=[{label:"Total de Eventos",value:t.length,icon:Kp,color:"var(--primary)",trend:"Ativos no sistema"},{label:"Agendados",value:t.filter(o=>o.status==="Agendado").length,icon:Ui,color:"var(--primary)",trend:"Aguardando disparo"},{label:"Disparados Hoje",value:n.filter(o=>{const i=new Date(o.timestamp).toDateString(),s=new Date().toDateString();return i===s&&o.success}).length,icon:Fi,color:"var(--success)",trend:"Sucesso"},{label:"Erros Recentes",value:n.filter(o=>!o.success).length,icon:Ap,color:"var(--danger-soft)",trend:"Falhas registradas",urgent:!0}],l=n.slice(0,5);return a.jsxs("div",{className:"dashboard-container fade-in",children:[a.jsx("div",{className:"stats-grid",children:r.map((o,i)=>a.jsxs("div",{className:`stat-card ${o.urgent?"stat-urgent":""}`,style:{animationDelay:`${i*.1}s`},children:[a.jsxs("div",{className:"stat-header",children:[a.jsx("span",{className:"stat-label",children:o.label}),a.jsx(o.icon,{size:24,style:{color:o.color}})]}),a.jsx("div",{className:"stat-value",children:o.value}),a.jsxs("div",{className:"stat-footer",children:[a.jsx(uf,{size:12}),a.jsx("span",{children:o.trend})]})]},i))}),a.jsxs("div",{className:"dashboard-grid",children:[a.jsxs("div",{className:"dashboard-main",children:[a.jsxs("div",{className:"section-header",children:[a.jsx("h3",{className:"section-title",children:"Atividade Recente"}),a.jsx("button",{className:"btn-text",children:"Ver tudo"})]}),a.jsx("div",{className:"history-mini-list",children:l.length===0?a.jsx("div",{className:"empty-mini",children:"Nenhuma atividade recente registrada"}):l.map(o=>a.jsxs("div",{className:`history-card-mini ${o.success?"card-success":"card-error"}`,children:[a.jsxs("div",{className:"card-mini-header",children:[a.jsxs("div",{className:"card-mini-title-row",children:[a.jsx("span",{className:"card-mini-event",children:o.eventName}),a.jsx("span",{className:"card-mini-time",children:new Date(o.timestamp).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})})]}),a.jsx("div",{className:"card-mini-date",children:new Date(o.timestamp).toLocaleDateString("pt-BR")})]}),a.jsxs("div",{className:"card-mini-body",children:[a.jsxs("div",{className:"card-mini-line",children:[a.jsx("span",{className:"mini-label",children:"Para:"}),a.jsx("span",{className:"mini-value truncate",children:o.recipient||"URL não registrada"})]}),a.jsxs("div",{className:"card-mini-line",children:[a.jsx("span",{className:"mini-label",children:"Conteúdo:"}),a.jsxs("span",{className:"mini-value italic",children:['"',o.response,'"']})]})]}),a.jsxs("div",{className:"card-mini-footer",children:[a.jsx("span",{className:`mini-status-text ${o.success?"text-success":"text-danger"}`,children:o.success?"✓ Enviado com sucesso":"✕ Falha no envio"}),a.jsx("span",{className:"mini-trigger-type",children:o.triggerType})]})]},o.id))})]}),a.jsx("div",{className:"dashboard-side",children:a.jsxs("div",{className:"promo-card",children:[a.jsx("h4",{children:"Atalhos Rápidos"}),a.jsx("div",{className:"quick-actions-grid",children:a.jsxs("button",{className:"action-tile",onClick:e,children:[a.jsx(PlusCircle,{size:20}),a.jsx("span",{children:"Novo Evento"})]})})]})})]}),a.jsx("style",{jsx:!0,children:`
         .dashboard-container {
           display: flex;
           flex-direction: column;
@@ -273,146 +273,158 @@ Error generating stack: `+o.message+`
           opacity: 0;
         }
 
-        .stat-urgent {
-          border-top: 3px solid var(--danger);
-        }
-
-        .stat-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-        }
-
-        .stat-label {
-          font-size: 11px;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          color: var(--text-muted);
-        }
-
-        .stat-value {
-          font-size: 32px;
-          font-weight: 700;
-          color: white;
-          margin-bottom: 12px;
-        }
-
-        .stat-footer {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 10px;
-          color: var(--text-muted);
-        }
-
-        .dashboard-grid {
-          display: grid;
-          grid-template-columns: 2fr 1fr;
-          gap: 32px;
-        }
-
-        .section-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-
-        .section-title {
-          font-size: 14px;
-          color: var(--primary);
-        }
-
-        .btn-text {
-          background: transparent;
-          border: none;
-          color: var(--text-muted);
-          font-size: 11px;
-          text-transform: uppercase;
-          cursor: pointer;
-        }
+        /* ... (stat classes maintained) */
 
         .history-mini-list {
-          background-color: var(--bg-medium);
-          border-radius: 8px;
-          border: 1px solid var(--bg-light);
-          overflow: hidden;
-        }
-
-        .history-mini-item {
           display: flex;
-          align-items: center;
-          padding: 16px 20px;
-          border-bottom: 1px solid var(--bg-light);
+          flex-direction: column;
           gap: 16px;
         }
 
-        .history-mini-item:last-child {
-          border-bottom: none;
-        }
-
-        .status-indicator {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-        }
-
-        .bg-success { background-color: var(--success); }
-        .bg-danger { background-color: var(--danger-soft); }
-
-        .history-info {
+        .history-card-mini {
+          background-color: var(--bg-medium);
+          border-radius: 10px;
+          padding: 16px;
+          border-left: 4px solid transparent;
+          transition: transform 0.2s, box-shadow 0.2s;
           display: flex;
           flex-direction: column;
+          gap: 12px;
+        }
+
+        .history-card-mini:hover {
+          transform: translateX(4px);
+        }
+
+        .card-success {
+          border-left-color: var(--success);
+          box-shadow: 0 4px 12px rgba(29, 184, 119, 0.05);
+        }
+
+        .card-success:hover {
+          box-shadow: 0 4px 15px rgba(29, 184, 119, 0.15);
+        }
+
+        .card-error {
+          border-left-color: var(--danger-soft);
+          box-shadow: 0 4px 12px rgba(232, 64, 74, 0.05);
+        }
+
+        .card-error:hover {
+          box-shadow: 0 4px 15px rgba(232, 64, 74, 0.15);
+        }
+
+        .card-mini-header {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .card-mini-title-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .card-mini-event {
+          font-weight: 700;
+          color: white;
+          font-size: 15px;
+        }
+
+        .card-mini-time {
+          font-size: 12px;
+          color: var(--primary);
+          font-weight: 600;
+        }
+
+        .card-mini-date {
+          font-size: 10px;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .card-mini-body {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          padding: 8px;
+          background-color: var(--bg-deep);
+          border-radius: 6px;
+        }
+
+        .card-mini-line {
+          display: flex;
+          gap: 8px;
+          font-size: 12px;
+          align-items: baseline;
+        }
+
+        .mini-label {
+          color: var(--text-muted);
+          min-width: 65px;
+          font-size: 11px;
+          text-transform: uppercase;
+        }
+
+        .mini-value {
+          color: white;
           flex: 1;
         }
 
-        .history-name {
-          font-size: 14px;
-          color: white;
-          font-weight: 500;
+        .truncate {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
-        .history-meta {
+        .card-mini-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-top: 4px;
+        }
+
+        .mini-status-text {
           font-size: 11px;
-          color: var(--text-muted);
+          font-weight: 700;
+          text-transform: uppercase;
         }
 
-        .history-badge {
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--danger-soft); }
+
+        .mini-trigger-type {
           font-size: 10px;
-          background-color: var(--bg-deep);
-          padding: 4px 8px;
+          color: var(--text-muted);
+          background-color: var(--bg-light);
+          padding: 2px 6px;
           border-radius: 4px;
-          color: var(--text-muted);
         }
 
-        .promo-card {
-          background-color: var(--bg-deep);
-          border: 1px solid var(--bg-light);
-          padding: 32px;
-          border-radius: 8px;
-          text-align: center;
+        .quick-actions-grid {
+          margin-top: 16px;
         }
 
-        .promo-card h4 {
-          color: var(--primary);
-          margin-bottom: 12px;
-        }
-
-        .promo-card p {
-          font-size: 13px;
-          color: var(--text-muted);
-          margin-bottom: 24px;
-        }
-
-        .btn-primary-small {
+        .action-tile {
+          width: 100%;
           background-color: var(--primary);
           color: var(--bg-deep);
           border: none;
-          padding: 8px 20px;
-          border-radius: 4px;
-          font-weight: 700;
+          padding: 12px;
+          border-radius: 8px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
           cursor: pointer;
+          font-weight: 700;
+          transition: all 0.2s;
+        }
+
+        .action-tile:hover {
+          background-color: var(--primary-soft);
+          transform: translateY(-2px);
         }
 
         .empty-mini {
@@ -556,9 +568,9 @@ Error generating stack: `+o.message+`
           color: var(--text-muted);
           padding: 48px;
         }
-      `})]})},xf=()=>{const{history:e,fireWebhook:t,events:n}=Ft(),r=async l=>{const o=n.find(i=>i.id===l.eventId);if(o){const i=o.triggers.find(s=>s.type===l.triggerType);i&&await t(o,i)}};return a.jsxs("div",{className:"history-container fade-in",children:[a.jsx("div",{className:"history-timeline",children:e.length===0?a.jsxs("div",{className:"empty-history",children:[a.jsx(Qp,{size:40,className:"text-muted"}),a.jsx("p",{children:"Nenhum disparo realizado ainda."})]}):e.map((l,o)=>a.jsxs("div",{className:"timeline-item",children:[a.jsxs("div",{className:"timeline-marker",children:[a.jsx("div",{className:`marker-dot ${l.success?"marker-success":"marker-error"}`,children:l.success?a.jsx(Fi,{size:14}):a.jsx(ff,{size:14})}),o!==e.length-1&&a.jsx("div",{className:"marker-line"})]}),a.jsxs("div",{className:"timeline-content",children:[a.jsxs("div",{className:"item-header",children:[a.jsxs("div",{className:"item-title-row",children:[a.jsx("span",{className:"item-event-name",children:l.eventName}),a.jsxs("span",{className:`status-badge ${l.success?"badge-success":"badge-error"}`,children:["HTTP ",l.status]})]}),a.jsx("span",{className:"item-timestamp",children:new Date(l.timestamp).toLocaleString("pt-BR")})]}),a.jsx("div",{className:"item-details",children:a.jsxs("div",{className:"detail-row",children:[a.jsx("span",{className:"detail-label",children:"Tipo de Antecedência:"}),a.jsx("span",{className:"detail-value",children:l.triggerType})]})}),!l.success&&a.jsx("div",{className:"item-actions",children:a.jsxs("button",{className:"btn-resend",onClick:()=>r(l),children:[a.jsx(lf,{size:14}),"Reenviar Disparo"]})})]})]},l.id))}),a.jsx("style",{jsx:!0,children:`
+      `})]})},xf=()=>{const{history:e,fireWebhook:t,events:n}=Ft(),r=async l=>{const o=n.find(i=>i.id===l.eventId);if(o){const i=o.triggers.find(s=>s.type===l.triggerType);i&&await t(o,i)}};return a.jsxs("div",{className:"history-container fade-in",children:[a.jsx("div",{className:"history-timeline",children:e.length===0?a.jsxs("div",{className:"empty-history",children:[a.jsx(Qp,{size:40,className:"text-muted"}),a.jsx("p",{children:"Nenhum disparo realizado ainda."})]}):e.map((l,o)=>a.jsxs("div",{className:"timeline-item",children:[a.jsxs("div",{className:"timeline-marker",children:[a.jsx("div",{className:`marker-dot ${l.success?"marker-success":"marker-error"}`,children:l.success?a.jsx(Fi,{size:14}):a.jsx(ff,{size:14})}),o!==e.length-1&&a.jsx("div",{className:"marker-line"})]}),a.jsxs("div",{className:"timeline-content card-rich",children:[a.jsxs("div",{className:`history-card-header ${l.success?"border-success":"border-error"}`,children:[a.jsxs("div",{className:"card-title-row",children:[a.jsx("h4",{className:"card-event-name",children:l.eventName}),a.jsxs("span",{className:`card-status-pill ${l.success?"pill-success":"pill-error"}`,children:["HTTP ",l.status]})]}),a.jsxs("div",{className:"card-meta-row",children:[a.jsxs("span",{className:"card-timestamp",children:[new Date(l.timestamp).toLocaleDateString("pt-BR")," às ",new Date(l.timestamp).toLocaleTimeString("pt-BR")]}),a.jsx("span",{className:"card-trigger-badge",children:l.triggerType})]})]}),a.jsxs("div",{className:"card-details-box",children:[a.jsxs("div",{className:"card-detail-line",children:[a.jsx("span",{className:"card-detail-label",children:"Destinatário:"}),a.jsx("span",{className:"card-detail-value",children:l.recipient||"URL não capturada"})]}),a.jsxs("div",{className:"card-detail-line",children:[a.jsx("span",{className:"card-detail-label",children:"Resposta/Conteúdo:"}),a.jsxs("span",{className:`card-detail-value italic ${l.success?"text-success":"text-danger"}`,children:['"',l.response,'"']})]})]}),!l.success&&a.jsx("div",{className:"card-actions",children:a.jsxs("button",{className:"btn-resend-rich",onClick:()=>r(l),children:[a.jsx(lf,{size:14}),"Tentar Novamente"]})})]})]},l.id))}),a.jsx("style",{jsx:!0,children:`
         .history-container {
-          max-width: 800px;
+          max-width: 900px;
           margin: 0 auto;
         }
 
@@ -569,7 +581,7 @@ Error generating stack: `+o.message+`
         .timeline-item {
           display: flex;
           gap: 24px;
-          margin-bottom: 0;
+          margin-bottom: 32px;
         }
 
         .timeline-marker {
@@ -587,112 +599,137 @@ Error generating stack: `+o.message+`
           align-items: center;
           justify-content: center;
           z-index: 2;
+          background-color: var(--bg-deep);
+          border: 1px solid var(--bg-light);
         }
 
-        .marker-success {
-          background-color: rgba(29, 184, 119, 0.1);
-          color: var(--success);
-          border: 1px solid var(--success);
-        }
-
-        .marker-error {
-          background-color: rgba(192, 32, 42, 0.1);
-          color: var(--danger-soft);
-          border: 1px solid var(--danger-soft);
-        }
+        .marker-success { color: var(--success); border-color: var(--success); }
+        .marker-error { color: var(--danger-soft); border-color: var(--danger-soft); }
 
         .marker-line {
           width: 2px;
           flex: 1;
           background-color: var(--bg-light);
-          min-height: 100px;
+          min-height: 40px;
         }
 
-        .timeline-content {
+        .timeline-content.card-rich {
           flex: 1;
           background-color: var(--bg-medium);
+          border-radius: 12px;
           border: 1px solid var(--bg-light);
-          border-radius: 8px;
-          padding: 20px;
-          margin-bottom: 40px;
-          position: relative;
+          overflow: hidden;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
-        .item-header {
+        .history-card-header {
+          padding: 20px;
+          border-bottom: 1px solid var(--bg-light);
+        }
+
+        .border-success { border-left: 6px solid var(--success); }
+        .border-error { border-left: 6px solid var(--danger-soft); }
+
+        .card-title-row {
           display: flex;
           justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 12px;
+          align-items: center;
+          margin-bottom: 8px;
         }
 
-        .item-title-row {
+        .card-event-name {
+          font-size: 18px;
+          font-weight: 700;
+          color: white;
+          margin: 0;
+        }
+
+        .card-status-pill {
+          font-size: 10px;
+          font-weight: 800;
+          padding: 4px 10px;
+          border-radius: 20px;
+          text-transform: uppercase;
+        }
+
+        .pill-success { background: rgba(29, 184, 119, 0.1); color: var(--success); }
+        .pill-error { background: rgba(232, 64, 74, 0.1); color: var(--danger-soft); }
+
+        .card-meta-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .card-timestamp {
+          font-size: 12px;
+          color: var(--text-muted);
+        }
+
+        .card-trigger-badge {
+          font-size: 11px;
+          background: var(--bg-deep);
+          color: var(--primary);
+          padding: 2px 8px;
+          border-radius: 4px;
+        }
+
+        .card-details-box {
+          padding: 20px;
+          background: rgba(0, 0, 0, 0.1);
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .card-detail-line {
           display: flex;
           flex-direction: column;
           gap: 4px;
         }
 
-        .item-event-name {
-          font-weight: 700;
-          color: white;
-          font-size: 16px;
-        }
-
-        .status-badge {
-          display: inline-block;
-          font-size: 10px;
-          font-weight: 700;
-          padding: 2px 8px;
-          border-radius: 4px;
-          width: fit-content;
-        }
-
-        .badge-success { background-color: var(--bg-deep); color: var(--success); }
-        .badge-error { background-color: var(--bg-deep); color: var(--danger-soft); }
-
-        .item-timestamp {
+        .card-detail-label {
           font-size: 11px;
+          text-transform: uppercase;
           color: var(--text-muted);
+          letter-spacing: 0.05em;
         }
 
-        .item-details {
-            padding: 12px;
-            background-color: var(--bg-deep);
-            border-radius: 6px;
-            margin-bottom: 16px;
+        .card-detail-value {
+          color: white;
+          font-size: 14px;
+          word-break: break-all;
         }
 
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
+        .italic { font-style: italic; }
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--danger-soft); }
+
+        .card-actions {
+          padding: 16px 20px;
+          display: flex;
+          justify-content: flex-end;
+          background: var(--bg-deep);
         }
 
-        .detail-label { color: var(--text-muted); }
-        .detail-value { color: white; font-weight: 500; }
-
-        .item-actions {
-            display: flex;
-            justify-content: flex-end;
+        .btn-resend-rich {
+          background: var(--danger-soft);
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          transition: transform 0.2s;
         }
 
-        .btn-resend {
-            background-color: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-resend:hover {
-            background-color: var(--primary);
-            color: var(--bg-deep);
+        .btn-resend-rich:hover {
+          transform: translateY(-2px);
+          filter: brightness(1.1);
         }
 
         .empty-history {

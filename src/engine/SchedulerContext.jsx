@@ -224,7 +224,8 @@ export const SchedulerProvider = ({ children }) => {
                 time: new Date().toISOString(),
                 status: data.ok ? 'Sucesso' : `Erro ${data.status || 'Server'}`,
                 response: data.ok ? 'Webhook disparado (via Server)' : `Falha no disparo: ${data.statusText || data.error}`,
-                type: trigger.type
+                type: trigger.type,
+                recipient: targetUrl
             };
 
             try {

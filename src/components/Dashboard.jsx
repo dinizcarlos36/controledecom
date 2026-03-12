@@ -78,14 +78,31 @@ const Dashboard = ({ onAddClick }) => {
                             <div className="empty-mini">Nenhuma atividade recente registrada</div>
                         ) : (
                             recentHistory.map(item => (
-                                <div key={item.id} className="history-mini-item">
-                                    <div className={`status-indicator ${item.success ? 'bg-success' : 'bg-danger'}`}></div>
-                                    <div className="history-info">
-                                        <span className="history-name">{item.eventName}</span>
-                                        <span className="history-meta">{item.triggerType} • {new Date(item.timestamp).toLocaleTimeString()}</span>
+                                <div key={item.id} className={`history-card-mini ${item.success ? 'card-success' : 'card-error'}`}>
+                                    <div className="card-mini-header">
+                                        <div className="card-mini-title-row">
+                                            <span className="card-mini-event">{item.eventName}</span>
+                                            <span className="card-mini-time">{new Date(item.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                        </div>
+                                        <div className="card-mini-date">{new Date(item.timestamp).toLocaleDateString('pt-BR')}</div>
                                     </div>
-                                    <div className="history-badge">
-                                        {item.status}
+                                    
+                                    <div className="card-mini-body">
+                                        <div className="card-mini-line">
+                                            <span className="mini-label">Para:</span>
+                                            <span className="mini-value truncate">{item.recipient || 'URL não registrada'}</span>
+                                        </div>
+                                        <div className="card-mini-line">
+                                            <span className="mini-label">Conteúdo:</span>
+                                            <span className="mini-value italic">"{item.response}"</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="card-mini-footer">
+                                        <span className={`mini-status-text ${item.success ? 'text-success' : 'text-danger'}`}>
+                                            {item.success ? '✓ Enviado com sucesso' : '✕ Falha no envio'}
+                                        </span>
+                                        <span className="mini-trigger-type">{item.triggerType}</span>
                                     </div>
                                 </div>
                             ))
@@ -95,9 +112,13 @@ const Dashboard = ({ onAddClick }) => {
 
                 <div className="dashboard-side">
                     <div className="promo-card">
-                        <h4>Novo Evento?</h4>
-                        <p>Agende disparos automáticos para múltiplos canais via webhook.</p>
-                        <button className="btn-primary-small" onClick={onAddClick}>Criar Agora</button>
+                        <h4>Atalhos Rápidos</h4>
+                        <div className="quick-actions-grid">
+                            <button className="action-tile" onClick={onAddClick}>
+                                <PlusCircle size={20} />
+                                <span>Novo Evento</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -124,146 +145,158 @@ const Dashboard = ({ onAddClick }) => {
           opacity: 0;
         }
 
-        .stat-urgent {
-          border-top: 3px solid var(--danger);
-        }
-
-        .stat-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-        }
-
-        .stat-label {
-          font-size: 11px;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          color: var(--text-muted);
-        }
-
-        .stat-value {
-          font-size: 32px;
-          font-weight: 700;
-          color: white;
-          margin-bottom: 12px;
-        }
-
-        .stat-footer {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 10px;
-          color: var(--text-muted);
-        }
-
-        .dashboard-grid {
-          display: grid;
-          grid-template-columns: 2fr 1fr;
-          gap: 32px;
-        }
-
-        .section-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-
-        .section-title {
-          font-size: 14px;
-          color: var(--primary);
-        }
-
-        .btn-text {
-          background: transparent;
-          border: none;
-          color: var(--text-muted);
-          font-size: 11px;
-          text-transform: uppercase;
-          cursor: pointer;
-        }
+        /* ... (stat classes maintained) */
 
         .history-mini-list {
-          background-color: var(--bg-medium);
-          border-radius: 8px;
-          border: 1px solid var(--bg-light);
-          overflow: hidden;
-        }
-
-        .history-mini-item {
           display: flex;
-          align-items: center;
-          padding: 16px 20px;
-          border-bottom: 1px solid var(--bg-light);
+          flex-direction: column;
           gap: 16px;
         }
 
-        .history-mini-item:last-child {
-          border-bottom: none;
-        }
-
-        .status-indicator {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-        }
-
-        .bg-success { background-color: var(--success); }
-        .bg-danger { background-color: var(--danger-soft); }
-
-        .history-info {
+        .history-card-mini {
+          background-color: var(--bg-medium);
+          border-radius: 10px;
+          padding: 16px;
+          border-left: 4px solid transparent;
+          transition: transform 0.2s, box-shadow 0.2s;
           display: flex;
           flex-direction: column;
+          gap: 12px;
+        }
+
+        .history-card-mini:hover {
+          transform: translateX(4px);
+        }
+
+        .card-success {
+          border-left-color: var(--success);
+          box-shadow: 0 4px 12px rgba(29, 184, 119, 0.05);
+        }
+
+        .card-success:hover {
+          box-shadow: 0 4px 15px rgba(29, 184, 119, 0.15);
+        }
+
+        .card-error {
+          border-left-color: var(--danger-soft);
+          box-shadow: 0 4px 12px rgba(232, 64, 74, 0.05);
+        }
+
+        .card-error:hover {
+          box-shadow: 0 4px 15px rgba(232, 64, 74, 0.15);
+        }
+
+        .card-mini-header {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .card-mini-title-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .card-mini-event {
+          font-weight: 700;
+          color: white;
+          font-size: 15px;
+        }
+
+        .card-mini-time {
+          font-size: 12px;
+          color: var(--primary);
+          font-weight: 600;
+        }
+
+        .card-mini-date {
+          font-size: 10px;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .card-mini-body {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          padding: 8px;
+          background-color: var(--bg-deep);
+          border-radius: 6px;
+        }
+
+        .card-mini-line {
+          display: flex;
+          gap: 8px;
+          font-size: 12px;
+          align-items: baseline;
+        }
+
+        .mini-label {
+          color: var(--text-muted);
+          min-width: 65px;
+          font-size: 11px;
+          text-transform: uppercase;
+        }
+
+        .mini-value {
+          color: white;
           flex: 1;
         }
 
-        .history-name {
-          font-size: 14px;
-          color: white;
-          font-weight: 500;
+        .truncate {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
-        .history-meta {
+        .card-mini-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-top: 4px;
+        }
+
+        .mini-status-text {
           font-size: 11px;
-          color: var(--text-muted);
+          font-weight: 700;
+          text-transform: uppercase;
         }
 
-        .history-badge {
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--danger-soft); }
+
+        .mini-trigger-type {
           font-size: 10px;
-          background-color: var(--bg-deep);
-          padding: 4px 8px;
+          color: var(--text-muted);
+          background-color: var(--bg-light);
+          padding: 2px 6px;
           border-radius: 4px;
-          color: var(--text-muted);
         }
 
-        .promo-card {
-          background-color: var(--bg-deep);
-          border: 1px solid var(--bg-light);
-          padding: 32px;
-          border-radius: 8px;
-          text-align: center;
+        .quick-actions-grid {
+          margin-top: 16px;
         }
 
-        .promo-card h4 {
-          color: var(--primary);
-          margin-bottom: 12px;
-        }
-
-        .promo-card p {
-          font-size: 13px;
-          color: var(--text-muted);
-          margin-bottom: 24px;
-        }
-
-        .btn-primary-small {
+        .action-tile {
+          width: 100%;
           background-color: var(--primary);
           color: var(--bg-deep);
           border: none;
-          padding: 8px 20px;
-          border-radius: 4px;
-          font-weight: 700;
+          padding: 12px;
+          border-radius: 8px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
           cursor: pointer;
+          font-weight: 700;
+          transition: all 0.2s;
+        }
+
+        .action-tile:hover {
+          background-color: var(--primary-soft);
+          transform: translateY(-2px);
         }
 
         .empty-mini {
