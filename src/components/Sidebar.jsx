@@ -50,13 +50,7 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
       </nav>
 
       <div className="sidebar-footer">
-        <button
-          className="btn-logout"
-          onClick={onLogout}
-        >
-          <LogOut size={18} />
-          <span>Sair</span>
-        </button>
+        <div className="sidebar-divider" />
         <button
           className="btn-add-quick"
           onClick={() => setActiveTab('add-event')}
@@ -64,6 +58,19 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
           <PlusCircle size={18} />
           <span>Novo Evento</span>
         </button>
+        
+        <div className="logout-section">
+          <button
+            className="btn-logout-prominent"
+            onClick={() => {
+              console.log("Logout clicked");
+              if (onLogout) onLogout();
+            }}
+          >
+            <LogOut size={18} />
+            <span>Sair do Sistema</span>
+          </button>
+        </div>
       </div>
 
       <style jsx>{`
@@ -157,32 +164,45 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
         }
 
         .sidebar-footer {
-          padding: 0 16px;
+          padding: 16px;
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 16px;
+          background-color: var(--bg-deep);
         }
 
-        .btn-logout {
+        .sidebar-divider {
+          height: 1px;
+          background: var(--bg-light);
+          margin: 0 -16px;
+          opacity: 0.5;
+        }
+
+        .logout-section {
+          padding-top: 8px;
+        }
+
+        .btn-logout-prominent {
           width: 100%;
-          background: rgba(232, 64, 74, 0.1);
-          color: var(--danger-soft);
-          border: 1px solid rgba(232, 64, 74, 0.2);
-          padding: 10px 16px;
-          border-radius: 6px;
+          background: rgba(232, 64, 74, 0.15);
+          color: white;
+          border: 1px solid var(--danger-soft);
+          padding: 12px 16px;
+          border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
-          font-weight: 600;
+          gap: 10px;
+          font-weight: 700;
           cursor: pointer;
           transition: all 0.2s ease;
           font-family: var(--font-body);
         }
 
-        .btn-logout:hover {
-          background: rgba(232, 64, 74, 0.2);
-          border-color: var(--danger-soft);
+        .btn-logout-prominent:hover {
+          background: var(--danger-soft);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(232, 64, 74, 0.3);
         }
 
         .btn-add-quick {
@@ -190,8 +210,8 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
           background-color: var(--primary);
           color: var(--bg-deep);
           border: none;
-          padding: 10px 16px;
-          border-radius: 6px;
+          padding: 12px 16px;
+          border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -203,7 +223,7 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
 
         .btn-add-quick:hover {
           background-color: var(--primary-soft);
-          transform: scale(1.02);
+          transform: translateY(-2px);
         }
       `}</style>
     </aside>
