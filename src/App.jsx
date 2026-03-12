@@ -8,12 +8,30 @@ import History from './components/History'
 import EventForm from './components/EventForm'
 import EmployeesList from './components/EmployeesList'
 import Settings from './components/Settings'
+import Login from './components/Login'
 import { SchedulerProvider, useScheduler } from './engine/SchedulerContext'
 
 function AppContent() {
+    const [isAuthenticated, setIsAuthenticated] = useState(!!sessionStorage.getItem('auth_token'));
     const [activeTab, setActiveTab] = useState('dashboard')
     const [editingEvent, setEditingEvent] = useState(null)
     const { motorActive, nextUpdate } = useScheduler()
+
+    const handleLogin = (token, user) => {
+        sessionStorage.setItem('auth_token', token);
+        sessionStorage.setItem('auth_user', JSON.stringify(user));
+        setIsAuthenticated(true);
+    };
+
+    const handleLogout = () => {
+        sessionStorage.removeItem('auth_token');
+        sessionStorage.removeItem('auth_user');
+        setIsAuthenticated(false);
+    };
+
+    if (!isAuthenticated) {
+        return <Login onLogin={handleLogin} />;
+    }
 
     const getTitle = () => {
         switch (activeTab) {
@@ -29,7 +47,7 @@ function AppContent() {
 
     return (
         <div className="app-container">
-            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} />
             <main className="main-content">
                 <Header
                     title={getTitle()}

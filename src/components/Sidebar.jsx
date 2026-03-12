@@ -7,10 +7,11 @@ import {
   LayoutDashboard,
   Users,
   Settings,
+  LogOut,
   Bell
 } from 'lucide-react';
 
-const Sidebar = ({ activeTab, setActiveTab }) => {
+const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'events', label: 'Eventos', icon: Calendar },
@@ -49,6 +50,13 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
       </nav>
 
       <div className="sidebar-footer">
+        <button
+          className="btn-logout"
+          onClick={onLogout}
+        >
+          <LogOut size={18} />
+          <span>Sair</span>
+        </button>
         <button
           className="btn-add-quick"
           onClick={() => setActiveTab('add-event')}
@@ -150,6 +158,31 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
 
         .sidebar-footer {
           padding: 0 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .btn-logout {
+          width: 100%;
+          background: rgba(232, 64, 74, 0.1);
+          color: var(--danger-soft);
+          border: 1px solid rgba(232, 64, 74, 0.2);
+          padding: 10px 16px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-family: var(--font-body);
+        }
+
+        .btn-logout:hover {
+          background: rgba(232, 64, 74, 0.2);
+          border-color: var(--danger-soft);
         }
 
         .btn-add-quick {
