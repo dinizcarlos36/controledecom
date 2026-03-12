@@ -12,12 +12,16 @@ import Login from './components/Login'
 import { SchedulerProvider, useScheduler } from './engine/SchedulerContext'
 
 function AppContent() {
-    const [isAuthenticated, setIsAuthenticated] = useState(!!sessionStorage.getItem('auth_token'));
+    const [isAuthenticated, setIsAuthenticated] = useState(() => {
+        const token = sessionStorage.getItem('auth_token');
+        return !!token && token !== 'undefined' && token !== 'null';
+    });
     const [activeTab, setActiveTab] = useState('dashboard')
     const [editingEvent, setEditingEvent] = useState(null)
     const { motorActive, nextUpdate } = useScheduler()
 
     const handleLogin = (token, user) => {
+        if (!token) return;
         sessionStorage.setItem('auth_token', token);
         sessionStorage.setItem('auth_user', JSON.stringify(user));
         setIsAuthenticated(true);

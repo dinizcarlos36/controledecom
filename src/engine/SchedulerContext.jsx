@@ -16,6 +16,14 @@ export const SchedulerProvider = ({ children }) => {
         defaultMode: 'production'
     });
 
+    const getAuthHeaders = () => {
+        const token = sessionStorage.getItem('auth_token');
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : ''
+        };
+    };
+
     const [nextUpdate, setNextUpdate] = useState(60);
     const [motorActive, setMotorActive] = useState(true);
 
@@ -23,11 +31,12 @@ export const SchedulerProvider = ({ children }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                const headers = getAuthHeaders();
                 const [evRes, histRes, empRes, settRes] = await Promise.all([
-                    fetch(`${API_URL}/events`),
-                    fetch(`${API_URL}/history`),
-                    fetch(`${API_URL}/employees`),
-                    fetch(`${API_URL}/settings/webhook_settings`)
+                    fetch(`${API_URL}/events`, { headers }),
+                    fetch(`${API_URL}/history`, { headers }),
+                    fetch(`${API_URL}/employees`, { headers }),
+                    fetch(`${API_URL}/settings/webhook_settings`, { headers })
                 ]);
 
                 if (evRes.ok) setEvents(await evRes.json());
@@ -67,7 +76,7 @@ export const SchedulerProvider = ({ children }) => {
         try {
             const res = await fetch(`${API_URL}/events`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders(),
                 body: JSON.stringify(newEvent)
             });
             if (res.ok) {
@@ -245,11 +254,11 @@ export const SchedulerProvider = ({ children }) => {
             try {
                 await fetch(`${API_URL}/history`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify(historyEntry)
                 });
                 // Update local history
-                const histRes = await fetch(`${API_URL}/history`);
+                const histRes = await fetch(`${API_URL}/history`, { headers: getAuthHeaders() });
                 if (histRes.ok) {
                     const rawHistory = await histRes.json();
                     const normalizedHistory = rawHistory.map(h => ({

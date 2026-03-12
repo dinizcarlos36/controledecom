@@ -83,25 +83,29 @@ const Dashboard = ({ onAddClick }) => {
                                     <div className="card-mini-header">
                                         <div className="card-mini-title-row">
                                             <span className="card-mini-event">{item.eventName}</span>
-                                            <span className="card-mini-time">{new Date(item.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                            <span className="card-mini-time">
+                                                {item.timestamp ? new Date(item.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                                            </span>
                                         </div>
-                                        <div className="card-mini-date">{new Date(item.timestamp).toLocaleDateString('pt-BR')}</div>
+                                        <div className="card-mini-date">
+                                            {item.timestamp ? new Date(item.timestamp).toLocaleDateString('pt-BR') : 'Data Indisponível'}
+                                        </div>
                                     </div>
                                     
                                     <div className="card-mini-body">
                                         <div className="card-mini-line">
-                                            <span className="mini-label">Para:</span>
-                                            <span className="mini-value truncate">{item.recipient || 'URL não registrada'}</span>
+                                            <span className="mini-label">Destinatário:</span>
+                                            <span className="mini-value truncate text-primary">{item.recipient || 'URL Geral'}</span>
                                         </div>
                                         <div className="card-mini-line">
-                                            <span className="mini-label">Conteúdo:</span>
+                                            <span className="mini-label">Ação:</span>
                                             <span className="mini-value italic">"{item.response}"</span>
                                         </div>
                                     </div>
 
                                     <div className="card-mini-footer">
                                         <span className={`mini-status-text ${item.success ? 'text-success' : 'text-danger'}`}>
-                                            {item.success ? '✓ Enviado com sucesso' : '✕ Falha no envio'}
+                                            {item.success ? '✓ Sucesso' : '✕ Falha'}
                                         </span>
                                         <span className="mini-trigger-type">{item.triggerType}</span>
                                     </div>

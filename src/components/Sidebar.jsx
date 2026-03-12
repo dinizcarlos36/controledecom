@@ -47,10 +47,22 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
             {activeTab === item.id && <div className="active-indicator" />}
           </button>
         ))}
+        
+        <div className="sidebar-divider" style={{ margin: '16px 24px' }} />
+        
+        <button
+          className="nav-item nav-item-logout"
+          onClick={() => {
+            console.log("Logout clicked");
+            if (onLogout) onLogout();
+          }}
+        >
+          <LogOut size={18} />
+          <span>Sair do Sistema</span>
+        </button>
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-divider" />
         <button
           className="btn-add-quick"
           onClick={() => setActiveTab('add-event')}
@@ -58,19 +70,6 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
           <PlusCircle size={18} />
           <span>Novo Evento</span>
         </button>
-        
-        <div className="logout-section">
-          <button
-            className="btn-logout-prominent"
-            onClick={() => {
-              console.log("Logout clicked");
-              if (onLogout) onLogout();
-            }}
-          >
-            <LogOut size={18} />
-            <span>Sair do Sistema</span>
-          </button>
-        </div>
       </div>
 
       <style jsx>{`
@@ -178,31 +177,15 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
           opacity: 0.5;
         }
 
-        .logout-section {
-          padding-top: 8px;
-        }
-
-        .btn-logout-prominent {
-          width: 100%;
-          background: rgba(232, 64, 74, 0.15);
-          color: white;
-          border: 1px solid var(--danger-soft);
-          padding: 12px 16px;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
+        .nav-item-logout {
+          color: var(--danger-soft);
+          margin-top: auto;
           font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          font-family: var(--font-body);
         }
 
-        .btn-logout-prominent:hover {
+        .nav-item-logout:hover {
+          color: white;
           background: var(--danger-soft);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(232, 64, 74, 0.3);
         }
 
         .btn-add-quick {
