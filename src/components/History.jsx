@@ -34,16 +34,16 @@ const History = () => {
                             </div>
 
                             <div className="timeline-content card-rich">
-                                <div className={`history-card-header ${item.success ? 'border-success' : 'border-error'}`}>
+                                <div className={`history-card-header ${item.success ? 'bg-success-tint' : 'bg-error-tint'}`}>
                                     <div className="card-title-row">
                                         <h4 className="card-event-name">{item.eventName}</h4>
                                         <span className={`card-status-pill ${item.success ? 'pill-success' : 'pill-error'}`}>
-                                            HTTP {item.status}
+                                            {item.status}
                                         </span>
                                     </div>
                                     <div className="card-meta-row">
                                         <span className="card-timestamp">
-                                            {new Date(item.timestamp).toLocaleDateString('pt-BR')} às {new Date(item.timestamp).toLocaleTimeString('pt-BR')}
+                                            {new Date(item.timestamp).toLocaleDateString('pt-BR')} às {new Date(item.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                         <span className="card-trigger-badge">{item.triggerType}</span>
                                     </div>
@@ -135,8 +135,14 @@ const History = () => {
           border-bottom: 1px solid var(--bg-light);
         }
 
-        .border-success { border-left: 6px solid var(--success); }
-        .border-error { border-left: 6px solid var(--danger-soft); }
+        .bg-success-tint { 
+          border-left: 6px solid var(--success);
+          background: linear-gradient(to right, rgba(29, 184, 119, 0.15), transparent);
+        }
+        .bg-error-tint { 
+          border-left: 6px solid var(--danger-soft);
+          background: linear-gradient(to right, rgba(232, 64, 74, 0.15), transparent);
+        }
 
         .card-title-row {
           display: flex;
